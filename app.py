@@ -24,7 +24,10 @@ AD_CODE_MIDDLE = """
 """
 
 def display_ad_slot(html_code, height=90, key="ad_slot"):
-    """外部広告コード（HTML/JavaScript）を埋め込むための関数"""
+    """
+    外部広告コード（HTML/JavaScript）を埋め込むための関数
+    TypeError対策として、components.htmlにはキーワード引数で渡します。
+    """
     components.html(
         html_code,
         height=height,
@@ -39,8 +42,8 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置
-display_ad_slot(AD_CODE_HEADER, height=100, key="header_ad") 
+# 広告枠 1: ヘッダー広告の配置 (修正: 明示的なキーワード引数を使用)
+display_ad_slot(html_code=AD_CODE_HEADER, height=100, key="header_ad") 
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
 try:
@@ -124,10 +127,9 @@ def scrape_and_extract_text(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         
         article_text = []
-        # 主に記事本文を含むタグからテキストを抽出
         for tag in soup.find_all(['p', 'h1', 'h2', 'h3', 'li', 'span']): 
             text = tag.get_text(strip=True)
-            if text and len(text) > 10: # 短すぎるテキストはノイズの可能性
+            if text and len(text) > 10: 
                 article_text.append(text)
 
         full_text = '\n\n'.join(article_text)
@@ -352,7 +354,7 @@ if current_body:
     st.header("📝 ステップ3: 最終チェックと修正")
     
     # 広告枠 2: 中間広告の配置
-    display_ad_slot(AD_CODE_MIDDLE, height=80, key="middle_ad")
+    display_ad_slot(html_code=AD_CODE_MIDDLE, height=80, key="middle_ad")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
     col1, col2 = st.columns([1, 1])
