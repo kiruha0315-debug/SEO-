@@ -10,6 +10,7 @@ import streamlit.components.v1 as components
 
 # --- 0. 広告コードの定義 ---
 # ⚠️ 注意: 実際の広告コード（AdSenseなど）に置き換えてください。
+# トリプルクォートで文字列型であることを保証します。
 AD_CODE_HEADER = """
     <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; text-align: center; width: 100%; border-radius: 5px;">
         <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告 728x90]</p>
@@ -26,7 +27,7 @@ AD_CODE_MIDDLE = """
 def display_ad_slot(html_code, height=90, key="ad_slot"):
     """
     外部広告コード（HTML/JavaScript）を埋め込むための関数
-    TypeError対策として、components.htmlにはキーワード引数で渡します。
+    components.htmlにはキーワード引数で渡します。
     """
     components.html(
         html_code,
@@ -42,8 +43,12 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置 (修正: 明示的なキーワード引数を使用)
-display_ad_slot(html_code=AD_CODE_HEADER, height=100, key="header_ad") 
+# 広告枠 1: ヘッダー広告の配置 (修正: 値と型のチェックを追加)
+if AD_CODE_HEADER and isinstance(AD_CODE_HEADER, str):
+    display_ad_slot(html_code=AD_CODE_HEADER, height=100, key="header_ad") 
+else:
+    st.warning("⚠️ 広告コード（AD_CODE_HEADER）が不正なため、表示をスキップしました。")
+
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
 try:
@@ -353,8 +358,11 @@ if current_body:
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
-    # 広告枠 2: 中間広告の配置
-    display_ad_slot(html_code=AD_CODE_MIDDLE, height=80, key="middle_ad")
+    # 広告枠 2: 中間広告の配置 (修正: 値と型のチェックを追加)
+    if AD_CODE_MIDDLE and isinstance(AD_CODE_MIDDLE, str):
+        display_ad_slot(html_code=AD_CODE_MIDDLE, height=80, key="middle_ad")
+    else:
+        st.info("💡 広告コード（AD_CODE_MIDDLE）が不正なため、表示をスキップしました。")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
     col1, col2 = st.columns([1, 1])
