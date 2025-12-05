@@ -28,7 +28,7 @@ def display_ad_slot(html_code, height=90, key="ad_slot"):
     外部広告コード（HTML/JavaScript）を埋め込むための関数
     components.htmlの呼び出し方を調整します。
     """
-    # 修正ポイント: html_codeを最初の位置引数として渡し、他をキーワード引数にする
+    # html_codeがstrであることを前提としています。
     components.html(
         html_code, # 位置引数
         height=height, # キーワード引数
@@ -43,10 +43,10 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置 (呼び出し側の修正: html_codeは関数内で位置引数として渡すため、ここでは不要)
-if AD_CODE_HEADER and isinstance(AD_CODE_HEADER, str):
-    # 呼び出し側では、関数定義の引数名に従ってシンプルに渡す
-    display_ad_slot(AD_CODE_HEADER, height=100, key="header_ad") 
+# 広告枠 1: ヘッダー広告の配置 (修正: 強制型変換と値のチェックを組み合わせます)
+safe_header_code = str(AD_CODE_HEADER) if AD_CODE_HEADER else ""
+if safe_header_code:
+    display_ad_slot(safe_header_code, height=100, key="header_ad") 
 else:
     st.warning("⚠️ 広告コード（AD_CODE_HEADER）が不正なため、表示をスキップしました。")
 
@@ -359,9 +359,10 @@ if current_body:
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
-    # 広告枠 2: 中間広告の配置 (修正: 値と型のチェックを追加し、呼び出し方を調整)
-    if AD_CODE_MIDDLE and isinstance(AD_CODE_MIDDLE, str):
-        display_ad_slot(AD_CODE_MIDDLE, height=80, key="middle_ad")
+    # 広告枠 2: 中間広告の配置 (修正: 強制型変換と値のチェックを組み合わせます)
+    safe_middle_code = str(AD_CODE_MIDDLE) if AD_CODE_MIDDLE else ""
+    if safe_middle_code:
+        display_ad_slot(safe_middle_code, height=80, key="middle_ad")
     else:
         st.info("💡 広告コード（AD_CODE_MIDDLE）が不正なため、表示をスキップしました。")
     
