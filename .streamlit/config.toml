@@ -1,1 +1,9 @@
 
+# .streamlit/config.toml
+
+[browser]
+gatherUsageStats = false
+
+[server]
+enableCORS = false
+enableXsrfProtection = false
