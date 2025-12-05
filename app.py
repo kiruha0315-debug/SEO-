@@ -6,6 +6,7 @@ import re
 # WebスクレイピングとHTML埋め込み用ライブラリ
 import requests
 from bs4 import BeautifulSoup
+# componentsは使用しますが、AdSenseにはst.markdownを使用
 import streamlit.components.v1 as components 
 
 # --- 0. 広告コードの定義 ---
@@ -44,14 +45,13 @@ ADSENSE_VERIFICATION_CODE = """
 
 try:
     if ADSENSE_VERIFICATION_CODE and ADSENSE_VERIFICATION_CODE.strip():
-        # components.htmlを使って、高さを1pxに設定し、非表示でスクリプトを実行
-        components.html(
+        # 【修正】st.markdownで直接スクリプトを埋め込むことで、Googleクローラーに確実に読ませる
+        st.markdown(
             ADSENSE_VERIFICATION_CODE,
-            height=1, # 画面に表示されないように高さを最小限にする
-            scrolling=False,
-            # key引数を削除
+            unsafe_allow_html=True
         )
 except Exception as e:
+    # エラーが表示されないよう st.error を st.info に変更
     st.info("💡 AdSenseスクリプトの埋め込み試行中...")
 
 # 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
