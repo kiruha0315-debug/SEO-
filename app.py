@@ -10,14 +10,15 @@ import streamlit.components.v1 as components
 
 # --- 0. 広告コードの定義 ---
 # ⚠️ 注意: 実際の広告コード（AdSenseなど）に置き換えてください。
-AD_CODE_HEADER = """
+# 定義時に文字列型であることを確実にする
+AD_CODE_HEADER_CONTENT = """
     <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; text-align: center; width: 100%; border-radius: 5px;">
         <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告 728x90]</p>
         <a href="#" style="color: #007bff; text-decoration: none;">スポンサーリンク - クリックで収益発生</a>
     </div>
 """
 
-AD_CODE_MIDDLE = """
+AD_CODE_MIDDLE_CONTENT = """
     <div style="background-color: #e0fff3; border: 1px solid #99ffc7; padding: 8px; text-align: center; margin-top: 15px; border-radius: 5px;">
         <p style="margin: 0; font-size: 0.9em; color: #008040;">[広告枠：中間レクタングル 300x250]</p>
     </div>
@@ -28,7 +29,7 @@ def display_ad_slot(html_code, height=90, key="ad_slot"):
     外部広告コード（HTML/JavaScript）を埋め込むための関数
     components.htmlの呼び出し方を調整します。
     """
-    # html_codeがstrであることを前提としています。
+    # ここに到達する前に安全性が保証されていることを前提とします。
     components.html(
         html_code, # 位置引数
         height=height, # キーワード引数
@@ -43,12 +44,13 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置 (修正: 強制型変換と値のチェックを組み合わせます)
-safe_header_code = str(AD_CODE_HEADER) if AD_CODE_HEADER else ""
-if safe_header_code:
+# 広告枠 1: ヘッダー広告の配置 (修正: 空白やNoneに対する厳密なチェック)
+# 広告コードを安全な文字列にし、空文字列（または空白のみ）でないことを確認する
+safe_header_code = str(AD_CODE_HEADER_CONTENT).strip() if AD_CODE_HEADER_CONTENT else ""
+if safe_header_code and not safe_header_code.isspace(): # isspace()は空白のみの場合True
     display_ad_slot(safe_header_code, height=100, key="header_ad") 
 else:
-    st.warning("⚠️ 広告コード（AD_CODE_HEADER）が不正なため、表示をスキップしました。")
+    st.info("💡 広告コード（ヘッダー）が空または不正なため、表示をスキップしました。")
 
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
@@ -360,11 +362,11 @@ if current_body:
     st.header("📝 ステップ3: 最終チェックと修正")
     
     # 広告枠 2: 中間広告の配置 (修正: 強制型変換と値のチェックを組み合わせます)
-    safe_middle_code = str(AD_CODE_MIDDLE) if AD_CODE_MIDDLE else ""
-    if safe_middle_code:
+    safe_middle_code = str(AD_CODE_MIDDLE_CONTENT).strip() if AD_CODE_MIDDLE_CONTENT else ""
+    if safe_middle_code and not safe_middle_code.isspace():
         display_ad_slot(safe_middle_code, height=80, key="middle_ad")
     else:
-        st.info("💡 広告コード（AD_CODE_MIDDLE）が不正なため、表示をスキップしました。")
+        st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
     col1, col2 = st.columns([1, 1])
