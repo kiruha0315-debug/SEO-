@@ -1,2 +1,3 @@
+# requirements.txt
 streamlit
-google-genai==0.11.0 # または最新安定版のバージョンを指定
+google-genai
