@@ -7,3 +7,10 @@ gatherUsageStats = false
 [server]
 enableCORS = false
 enableXsrfProtection = false
+
+[server]
+enableCORS = true
+enableXsrfProtection = true
+# 静的ファイル提供を許可する設定
+# Streamlit v1.13.0以降ではデフォルトで有効ですが、明示的に記述しておくと安心です
+# [server.enableStaticServing] # 厳密には不要な場合がありますが念のため
