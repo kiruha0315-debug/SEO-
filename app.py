@@ -10,7 +10,7 @@ import streamlit.components.v1 as components
 
 # --- 0. 広告コードの定義 ---
 # ⚠️ 注意: 実際の広告コード（AdSenseなど）に置き換えてください。
-# 定義時に文字列型であることを確実にする
+# 定義時に文字列型であることを確実にするため、変数名を変更
 AD_CODE_HEADER_CONTENT = """
     <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; text-align: center; width: 100%; border-radius: 5px;">
         <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告 728x90]</p>
@@ -24,18 +24,7 @@ AD_CODE_MIDDLE_CONTENT = """
     </div>
 """
 
-def display_ad_slot(html_code, height=90, key="ad_slot"):
-    """
-    外部広告コード（HTML/JavaScript）を埋め込むための関数
-    components.htmlの呼び出し方を調整します。
-    """
-    # ここに到達する前に安全性が保証されていることを前提とします。
-    components.html(
-        html_code, # 位置引数
-        height=height, # キーワード引数
-        scrolling=False,
-        key=key
-    )
+# display_ad_slot 関数は削除し、st.components.v1.htmlを直接呼び出します。
 
 # --- 1. 初期設定とAPIキーの取得 ---
 
@@ -44,11 +33,15 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置 (修正: 空白やNoneに対する厳密なチェック)
-# 広告コードを安全な文字列にし、空文字列（または空白のみ）でないことを確認する
+# 広告枠 1: ヘッダー広告の配置 (修正: ラッパー関数を削除し、st.components.v1.htmlを直接キーワード引数で呼び出す)
 safe_header_code = str(AD_CODE_HEADER_CONTENT).strip() if AD_CODE_HEADER_CONTENT else ""
-if safe_header_code and not safe_header_code.isspace(): # isspace()は空白のみの場合True
-    display_ad_slot(safe_header_code, height=100, key="header_ad") 
+if safe_header_code and not safe_header_code.isspace():
+    components.html(
+        html=safe_header_code, # 必須の'html'引数をキーワードで明示
+        height=100,
+        scrolling=False,
+        key="header_ad"
+    ) 
 else:
     st.info("💡 広告コード（ヘッダー）が空または不正なため、表示をスキップしました。")
 
@@ -312,120 +305,3 @@ elif mode == '🔍 既存コンテンツ診断（添削）':
     diagnosis_keyword = st.text_input(
         "🔑 この記事のターゲットキーワードは何ですか？",
         key="diagnosis_keyword_input"
-    )
-
-    existing_article = st.text_area(
-        "または、URLから取得できない場合に備え、直接本文を貼り付けられます。",
-        height=300,
-        key="existing_article_input"
-    )
-    
-    if st.button("🔬 AIによるSEO診断を開始する"):
-        if not diagnosis_keyword:
-            st.error("ターゲットキーワードが必要です。")
-        else:
-            article_to_diagnose = ""
-            
-            if diagnosis_url:
-                scraped_text = scrape_and_extract_text(diagnosis_url)
-                if scraped_text and len(scraped_text) > 50:
-                    article_to_diagnose = scraped_text
-                    st.session_state.existing_article_input = scraped_text
-                else:
-                    st.warning("URLからのコンテンツ取得に失敗したか、内容が不十分でした。貼り付けた本文を使用します。")
-                    article_to_diagnose = existing_article
-            elif existing_article:
-                article_to_diagnose = existing_article
-            else:
-                st.error("診断にはURLまたは記事本文の貼り付けが必要です。")
-                st.stop()
-            
-            if article_to_diagnose and len(article_to_diagnose) > 50:
-                st.session_state.article_body = article_to_diagnose
-                st.session_state.is_diagnosis_mode = True
-                check_seo(article_to_diagnose, diagnosis_keyword)
-            else:
-                st.error("診断できるほどの十分な長さの本文が取得できませんでした。")
-
-
-# =================================================================
-#                         共通の結果表示エリア
-# =================================================================
-
-current_body = st.session_state.revised_body if st.session_state.revised_body else st.session_state.article_body
-
-if current_body:
-    
-    target_keyword = st.session_state.get('gen_keyword') if not st.session_state.is_diagnosis_mode else st.session_state.get('diagnosis_keyword_input')
-
-    st.markdown("---")
-    st.header("📝 ステップ3: 最終チェックと修正")
-    
-    # 広告枠 2: 中間広告の配置 (修正: 強制型変換と値のチェックを組み合わせます)
-    safe_middle_code = str(AD_CODE_MIDDLE_CONTENT).strip() if AD_CODE_MIDDLE_CONTENT else ""
-    if safe_middle_code and not safe_middle_code.isspace():
-        display_ad_slot(safe_middle_code, height=80, key="middle_ad")
-    else:
-        st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
-    
-    # 7. メタ情報生成とチェックリスト実行ボタン
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        if st.button("✨ メタ情報を生成/チェックする", key="meta_check_btn"):
-            generate_meta(current_body)
-    with col2:
-        if st.button("🔍 SEOチェックリストで評価する", key="check_seo_btn"):
-            check_seo(current_body, target_keyword)
-
-    # 8. SEOチェックリストの表示
-    if st.session_state.seo_check and st.session_state.seo_check.get("seo_checklist"):
-        st.markdown("#### 📋 AIによるSEO改善提案")
-        check_list = st.session_state.seo_check["seo_checklist"]
-        
-        is_revised_needed = any(item.get('status') == "要改善" for item in check_list)
-
-        if is_revised_needed:
-            st.warning("🔴 要改善の指摘があります。自動修正を試してください。")
-            if st.button("🔧 AIによる自動修正を実行する", key="auto_revise_btn"):
-                revise_article(current_body, st.session_state.seo_check, target_keyword)
-        else:
-            st.success("🎉 SEO上の大きな改善点は見つかりませんでした！")
-
-    # 9. メタ情報の表示
-    if st.session_state.meta_data:
-        st.markdown("#### 📧 メタ情報 (検索結果で表示される部分)")
-        meta = st.session_state.meta_data
-        st.info(f"**SEOタイトル**: {meta.get('meta_title', 'N/A')} (目安: 30-35文字)")
-        st.warning(f"**メタディスクリプション**: {meta.get('meta_description', 'N/A')} (目安: 100-120文字)")
-    
-    # 10. 本文コピペエリア (修正版優先)
-    final_body_to_display = st.session_state.revised_body if st.session_state.revised_body else st.session_state.article_body
-
-    st.markdown("### ✍️ 最終記事本文 (コピペ用)")
-    st.text_area(
-        "📝 ブログに貼り付け可能な本文", 
-        final_body_to_display, 
-        height=500,
-        key="final_body_output"
-    )
-
-    # 11. ダウンロードボタン
-    
-    download_content = f"## SEOレポート\n\n"
-    if st.session_state.meta_data:
-        download_content += f"\n"
-        download_content += f"\n\n"
-    
-    if st.session_state.outline_data:
-        download_content += f"# {st.session_state.outline_data.get('article_title_H1')}\n\n"
-        
-    download_content += final_body_to_display
-    
-    st.download_button(
-        label="📥 Markdownファイルとしてダウンロード",
-        data=download_content.encode('utf-8'),
-        file_name=f"seo_article_final.md",
-        mime="text/markdown"
-    )
-    
-    st.success("🎉 全てのSEOタスクが完了しました！")
