@@ -37,6 +37,25 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
+# 🚨 AdSenseサイト所有権確認用コードの埋め込み 🚨
+# スクリーンショットに示されたコードを、Streamlitのcomponents.htmlで安全に実行します。
+# height=1 にすることで、画面に表示せず、バックグラウンドでスクリプトを読み込みます。
+ADSENSE_VERIFICATION_CODE = """
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2130894810041111" crossorigin="anonymous"></script>
+"""
+
+try:
+    if ADSENSE_VERIFICATION_CODE and ADSENSE_VERIFICATION_CODE.strip():
+        # components.htmlを使って、高さを1pxに設定し、非表示でスクリプトを実行
+        components.html(
+            ADSENSE_VERIFICATION_CODE,
+            height=1, # 画面に表示されないように高さを最小限にする
+            scrolling=False,
+            key="adsense_verification_script"
+        )
+except Exception as e:
+    st.error(f"🚨 AdSenseスクリプトの埋め込み中にエラーが発生しましたが、アプリは継続します。詳細: {e}")
+    st.info("💡 所有権確認のため、Streamlitでのスクリプト実行は続行しています。")
 
 # 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
 try:
@@ -304,7 +323,7 @@ elif mode == '🔍 既存コンテンツ診断（添削）':
     
     diagnosis_url = st.text_input(
         "🔗 診断したい記事のURLを入力してください",
-        key="diagnosis_url_input" # 👈 修正箇所
+        key="diagnosis_url_input"
     ) 
     
     diagnosis_keyword = st.text_input(
