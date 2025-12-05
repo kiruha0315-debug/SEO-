@@ -6,21 +6,27 @@ import re
 # WebスクレイピングとHTML埋め込み用ライブラリ
 import requests
 from bs4 import BeautifulSoup
+# components.html は使用しないため、インポートを残すのみ
 import streamlit.components.v1 as components 
 
 # --- 0. 広告コードの定義 ---
-# ⚠️ 注意: 実際の広告コード（AdSenseなど）に置き換えてください。
+# ⚠️ 注意: 実際の広告コードの代わりに、静的なリンクを表示するHTMLタグを記述します。
 # 広告コードのコンテンツを定義
-AD_CODE_HEADER_CONTENT = """
-    <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; text-align: center; width: 100%; border-radius: 5px;">
-        <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告（サイドバー） 300x250 推奨]</p>
-        <a href="#" style="color: #007bff; text-decoration: none;">スポンサーリンク - クリックで収益発生</a>
+AD_CODE_HEADER_HTML = """
+    <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; border-radius: 5px; text-align: center;">
+        <p style="margin: 0; font-weight: bold; color: #a00;">[スポンサーリンク]</p>
+        <a href="https://your-affiliate-link-header.com" target="_blank" style="color: #007bff; text-decoration: none;">
+            ✅ 【広告】おすすめのSEOツールはこちら
+        </a>
     </div>
 """
 
-AD_CODE_MIDDLE_CONTENT = """
+AD_CODE_MIDDLE_HTML = """
     <div style="background-color: #e0fff3; border: 1px solid #99ffc7; padding: 8px; text-align: center; margin-top: 15px; border-radius: 5px;">
-        <p style="margin: 0; font-size: 0.9em; color: #008040;">[広告枠：中間レクタングル 300x250]</p>
+        <p style="margin: 0; font-size: 0.9em; color: #008040;">[記事内広告枠]</p>
+        <a href="https://your-affiliate-link-middle.com" target="_blank" style="color: #008040; text-decoration: none;">
+            ✍️ AIライティングサービスで記事作成を効率化
+        </a>
     </div>
 """
 
@@ -31,21 +37,20 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置をサイドバーに移動 (エラー回避のため)
-safe_header_code = str(AD_CODE_HEADER_CONTENT).strip() if AD_CODE_HEADER_CONTENT else ""
-if safe_header_code and not safe_header_code.isspace():
-    try:
-        st.sidebar.markdown("### スポンサー")
-        components.html(
-            html=safe_header_code, 
-            height=100,
-            scrolling=False,
-            key="header_ad_sidebar"
-        ) 
-    except Exception:
-        st.sidebar.info("💡 広告表示エラー（Sidebar）")
-else:
-    st.sidebar.info("💡 広告コード（サイドバー）が不正です。")
+# 広告枠 1: ヘッダー広告の配置をサイドバーに移動（静的HTML使用）
+st.sidebar.markdown("### 📣 スポンサーリンク")
+try:
+    if AD_CODE_HEADER_HTML and AD_CODE_HEADER_HTML.strip():
+        # components.html を使わず、st.markdown で静的HTMLをレンダリング
+        st.sidebar.markdown(
+            AD_CODE_HEADER_HTML,
+            unsafe_allow_html=True
+        )
+    else:
+        st.sidebar.info("💡 広告コード（サイドバー）が設定されていません。")
+except Exception:
+    st.sidebar.error("🚨 広告表示エラー（サイドバー）が発生しましたが、アプリは継続します。")
+
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
 try:
@@ -355,23 +360,21 @@ if current_body:
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
-    # 広告枠 2: 中間広告の配置 (コメントアウトを解除し、try/exceptで保護)
+    # 広告枠 2: 中間広告の配置（静的HTML使用）
     st.markdown("---")
     st.subheader("💡 記事改善提案の間に広告表示 💡")
 
-    safe_middle_code = str(AD_CODE_MIDDLE_CONTENT).strip() if AD_CODE_MIDDLE_CONTENT else ""
-    if safe_middle_code and not safe_middle_code.isspace():
+    if AD_CODE_MIDDLE_HTML and AD_CODE_MIDDLE_HTML.strip():
         try:
-            components.html(
-                html=safe_middle_code,
-                height=80,
-                scrolling=False,
-                key="middle_ad"
+            # components.html を使わず、st.markdown で静的HTMLをレンダリング
+            st.markdown(
+                AD_CODE_MIDDLE_HTML,
+                unsafe_allow_html=True
             )
         except Exception:
             st.warning("🚨 中間広告のレンダリング中にエラーが発生しましたが、アプリは継続します。")
     else:
-        st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
+        st.info("💡 広告コード（中間）が設定されていません。")
     st.markdown("---")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
