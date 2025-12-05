@@ -13,7 +13,7 @@ import streamlit.components.v1 as components
 # 広告コードのコンテンツを定義
 AD_CODE_HEADER_CONTENT = """
     <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; text-align: center; width: 100%; border-radius: 5px;">
-        <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告 728x90]</p>
+        <p style="margin: 0; color: #a00; font-weight: bold;">[広告枠：ヘッダー広告（サイドバー） 300x250 推奨]</p>
         <a href="#" style="color: #007bff; text-decoration: none;">スポンサーリンク - クリックで収益発生</a>
     </div>
 """
@@ -31,19 +31,21 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置 (🚨 起動エラー回避のため、呼び出しを完全にコメントアウト 🚨)
+# 広告枠 1: ヘッダー広告の配置をサイドバーに移動 (エラー回避のため)
 safe_header_code = str(AD_CODE_HEADER_CONTENT).strip() if AD_CODE_HEADER_CONTENT else ""
-# if safe_header_code and not safe_header_code.isspace():
-#     components.html(
-#         html=safe_header_code, 
-#         height=100,
-#         scrolling=False,
-#         key="header_ad"
-#     ) 
-# else:
-#     st.info("💡 広告コード（ヘッダー）が空または不正なため、表示をスキップしました。")
-st.info("💡 広告コードの表示処理は、起動エラー回避のため、一時的にスキップされています。")
-
+if safe_header_code and not safe_header_code.isspace():
+    try:
+        st.sidebar.markdown("### スポンサー")
+        components.html(
+            html=safe_header_code, 
+            height=100,
+            scrolling=False,
+            key="header_ad_sidebar"
+        ) 
+    except Exception:
+        st.sidebar.info("💡 広告表示エラー（Sidebar）")
+else:
+    st.sidebar.info("💡 広告コード（サイドバー）が不正です。")
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
 try:
@@ -353,18 +355,24 @@ if current_body:
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
-    # 広告枠 2: 中間広告の配置 (🚨 起動エラー回避のため、呼び出しを完全にコメントアウト 🚨)
+    # 広告枠 2: 中間広告の配置 (コメントアウトを解除し、try/exceptで保護)
+    st.markdown("---")
+    st.subheader("💡 記事改善提案の間に広告表示 💡")
+
     safe_middle_code = str(AD_CODE_MIDDLE_CONTENT).strip() if AD_CODE_MIDDLE_CONTENT else ""
-    # if safe_middle_code and not safe_middle_code.isspace():
-    #     components.html(
-    #         html=safe_middle_code,
-    #         height=80,
-    #         scrolling=False,
-    #         key="middle_ad"
-    #     )
-    # else:
-    #     st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
-    st.info("💡 広告コードの表示処理は、起動エラー回避のため、一時的にスキップされています。（中間広告）")
+    if safe_middle_code and not safe_middle_code.isspace():
+        try:
+            components.html(
+                html=safe_middle_code,
+                height=80,
+                scrolling=False,
+                key="middle_ad"
+            )
+        except Exception:
+            st.warning("🚨 中間広告のレンダリング中にエラーが発生しましたが、アプリは継続します。")
+    else:
+        st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
+    st.markdown("---")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
     col1, col2 = st.columns([1, 1])
