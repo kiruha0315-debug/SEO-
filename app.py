@@ -37,22 +37,21 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 🚨 AdSenseサイト所有権確認用メタタグの埋め込み 🚨
-# Google AdSenseで取得した静的なメタタグを確実に埋め込みます。
-# これが最もクローラーに認識されやすい方法です。
-ADSENSE_VERIFICATION_TAG = """
-    <meta name="google-adsense-account" content="ca-pub-2130894810041111">
+# 🚨 Google Search Consoleの所有権確認用メタタグの埋め込み 🚨
+# AdSenseではなく、Search Consoleで取得した最も確実なタグを使用します。
+VERIFICATION_TAG = """
+    <meta name="google-site-verification" content="w6EuNK9uZXUqpc5SWo-KoWT_bST0kb9_0B_3LUDUG0I" />
 """
 
 try:
-    if ADSENSE_VERIFICATION_TAG and ADSENSE_VERIFICATION_TAG.strip():
+    if VERIFICATION_TAG and VERIFICATION_TAG.strip():
         # st.markdownで静的なHTMLとして確実にコンテンツに含める
         st.markdown(
-            ADSENSE_VERIFICATION_TAG,
+            VERIFICATION_TAG,
             unsafe_allow_html=True
         )
 except Exception:
-    st.info("💡 所有権確認メタタグ埋め込み試行中...")
+    st.info("💡 Search Console メタタグ埋め込み試行中...")
 
 # 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
 try:
