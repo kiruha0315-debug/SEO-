@@ -155,3 +155,64 @@ if 'outline_data' in st.session_state and st.session_state.outline_data:
 
     st.markdown("---")
     st.info("この骨子に基づき、次のステップでは「記事本文の自動生成」機能を追加していきます。")
+
+# --- 5. 記事本文生成エリア ---
+
+if 'outline_data' in st.session_state and st.session_state.outline_data:
+    st.markdown("---")
+    st.subheader("ステップ2: 記事本文を生成")
+    st.info("⚠️ 本文生成はAIリソースを多く消費するため、時間がかかります。")
+
+    # 新しいボタンの追加
+    if st.button("📝 この骨子で記事本文（約2000字）を生成する", key="generate_body_btn"):
+        # 骨子データをJSON形式の文字列として取得し、プロンプトに組み込む
+        outline_text = json.dumps(st.session_state.outline_data, ensure_ascii=False, indent=2)
+
+        # --- システムプロンプトの定義（ライティングモード） ---
+        body_prompt = f"""
+        あなたはプロのSEOライターです。
+        以下の「記事骨子（アウトライン）」のJSONデータに**厳密に従い**、SEOに最適化された記事の本文を生成してください。
+
+        【ライティングルール】
+        1. **文字数**: 記事全体の目安として、合計で**約2000字**になるように記述してください。
+        2. **H2/H3**: 見出しタグ（H2, H3）は**絶対に出力せず**、その下に入る**本文のみ**を記述してください。
+        3. **具体性**: 各H3のセクションは、具体的な手順、数値、例、専門用語の解説などを含め、**読者の疑問を完全に解消する**ように記述してください。
+        4. **SEO**: ターゲットキーワード（アフィリエイト 始め方）を、本文中に自然な形で複数回含めてください。
+        5. **出力形式**: HTMLやMarkdownの装飾は使わず、**プレーンテキスト**として、見出しと本文が連続した形式で出力してください。
+
+        【記事骨子（アウトライン）】
+        {outline_text}
+        
+        【出力開始】
+        ---
+        """
+        
+        try:
+            model = genai.GenerativeModel("gemini-2.5-flash") # 引き続き高速モデルを使用
+            
+            with st.spinner("✍️ 骨子に基づき、SEOに最適化された記事本文を執筆中..."):
+                response = model.generate_content(body_prompt)
+                
+                # 結果をセッションステートに保存
+                st.session_state.article_body = response.text
+                st.success("✅ 記事本文の生成が完了しました！")
+                
+        except Exception as e:
+            st.error(f"記事本文の生成中にエラーが発生しました: {e}")
+            st.session_state.article_body = None
+
+# --- 6. 生成された記事本文の表示 ---
+
+if 'article_body' in st.session_state and st.session_state.article_body:
+    st.markdown("---")
+    st.header("最終記事本文（コピペ用）")
+    
+    # ユーザーがコピーしやすいように st.text_area で表示
+    st.text_area(
+        "📝 ブログに貼り付け可能な本文", 
+        st.session_state.article_body, 
+        height=500
+    )
+    
+    st.markdown("---")
+    st.success("これで、検索意図を満たし、SEOに最適化された記事のドラフトが完成しました！")
