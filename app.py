@@ -6,7 +6,6 @@ import re
 # WebスクレイピングとHTML埋め込み用ライブラリ
 import requests
 from bs4 import BeautifulSoup
-# componentsは使用しますが、AdSenseにはst.markdownを使用
 import streamlit.components.v1 as components 
 
 # --- 0. 広告コードの定義 ---
@@ -38,21 +37,22 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 🚨 AdSenseサイト所有権確認用コードの埋め込み 🚨
-ADSENSE_VERIFICATION_CODE = """
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2130894810041111" crossorigin="anonymous"></script>
+# 🚨 AdSenseサイト所有権確認用メタタグの埋め込み 🚨
+# Google AdSenseで取得した静的なメタタグを確実に埋め込みます。
+# これが最もクローラーに認識されやすい方法です。
+ADSENSE_VERIFICATION_TAG = """
+    <meta name="google-adsense-account" content="ca-pub-2130894810041111">
 """
 
 try:
-    if ADSENSE_VERIFICATION_CODE and ADSENSE_VERIFICATION_CODE.strip():
-        # 【修正】st.markdownで直接スクリプトを埋め込むことで、Googleクローラーに確実に読ませる
+    if ADSENSE_VERIFICATION_TAG and ADSENSE_VERIFICATION_TAG.strip():
+        # st.markdownで静的なHTMLとして確実にコンテンツに含める
         st.markdown(
-            ADSENSE_VERIFICATION_CODE,
+            ADSENSE_VERIFICATION_TAG,
             unsafe_allow_html=True
         )
-except Exception as e:
-    # エラーが表示されないよう st.error を st.info に変更
-    st.info("💡 AdSenseスクリプトの埋め込み試行中...")
+except Exception:
+    st.info("💡 所有権確認メタタグ埋め込み試行中...")
 
 # 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
 try:
