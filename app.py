@@ -6,21 +6,21 @@ import re
 # WebスクレイピングとHTML埋め込み用ライブラリ
 import requests
 from bs4 import BeautifulSoup
-# components.html は使用しないため、インポートを残すのみ
 import streamlit.components.v1 as components 
 
 # --- 0. 広告コードの定義 ---
-# ⚠️ 注意: 実際の広告コードの代わりに、静的なリンクを表示するHTMLタグを記述します。
-# 広告コードのコンテンツを定義
+
+# ヘッダー広告（メインコンテンツ上部）のHTML
 AD_CODE_HEADER_HTML = """
-    <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; border-radius: 5px; text-align: center;">
-        <p style="margin: 0; font-weight: bold; color: #a00;">[スポンサーリンク]</p>
+    <div style="background-color: #ffe0e0; border: 1px solid #ff9999; padding: 10px; border-radius: 5px; text-align: center; margin-bottom: 20px;">
+        <p style="margin: 0; font-weight: bold; color: #a00;">[メインコンテンツ上部のスポンサーリンク]</p>
         <a href="https://your-affiliate-link-header.com" target="_blank" style="color: #007bff; text-decoration: none;">
             ✅ 【広告】おすすめのSEOツールはこちら
         </a>
     </div>
 """
 
+# 中間広告（記事内）のHTML
 AD_CODE_MIDDLE_HTML = """
     <div style="background-color: #e0fff3; border: 1px solid #99ffc7; padding: 8px; text-align: center; margin-top: 15px; border-radius: 5px;">
         <p style="margin: 0; font-size: 0.9em; color: #008040;">[記事内広告枠]</p>
@@ -37,19 +37,18 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置をサイドバーに移動（静的HTML使用）
-st.sidebar.markdown("### 📣 スポンサーリンク")
+
+# 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
 try:
     if AD_CODE_HEADER_HTML and AD_CODE_HEADER_HTML.strip():
-        # components.html を使わず、st.markdown で静的HTMLをレンダリング
-        st.sidebar.markdown(
+        # st.markdown で静的HTMLをレンダリング
+        st.markdown(
             AD_CODE_HEADER_HTML,
             unsafe_allow_html=True
         )
-    else:
-        st.sidebar.info("💡 広告コード（サイドバー）が設定されていません。")
-except Exception:
-    st.sidebar.error("🚨 広告表示エラー（サイドバー）が発生しましたが、アプリは継続します。")
+    # 広告コードが設定されていない場合でも、エラーは出さない
+except Exception as e:
+    st.error(f"🚨 広告表示エラー（メインヘッダー）が発生しましたが、アプリは継続します。詳細: {e}")
 
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
@@ -305,136 +304,4 @@ elif mode == '🔍 既存コンテンツ診断（添削）':
     
     diagnosis_url = st.text_input(
         "🔗 診断したい記事のURLを入力してください",
-        key="diagnosis_url_input"
-    ) 
-    
-    diagnosis_keyword = st.text_input(
-        "🔑 この記事のターゲットキーワードは何ですか？",
-        key="diagnosis_keyword_input"
-    )
-
-    existing_article = st.text_area(
-        "または、URLから取得できない場合に備え、直接本文を貼り付けられます。",
-        height=300,
-        key="existing_article_input"
-    )
-    
-    if st.button("🔬 AIによるSEO診断を開始する"):
-        if not diagnosis_keyword:
-            st.error("ターゲットキーワードが必要です。")
-        else:
-            article_to_diagnose = ""
-            
-            if diagnosis_url:
-                scraped_text = scrape_and_extract_text(diagnosis_url)
-                if scraped_text and len(scraped_text) > 50:
-                    article_to_diagnose = scraped_text
-                    st.session_state.existing_article_input = scraped_text
-                else:
-                    st.warning("URLからのコンテンツ取得に失敗したか、内容が不十分でした。貼り付けた本文を使用します。")
-                    article_to_diagnose = existing_article
-            elif existing_article:
-                article_to_diagnose = existing_article
-            else:
-                st.error("診断にはURLまたは記事本文の貼り付けが必要です。")
-                st.stop()
-            
-            if article_to_diagnose and len(article_to_diagnose) > 50:
-                st.session_state.article_body = article_to_diagnose
-                st.session_state.is_diagnosis_mode = True
-                check_seo(article_to_diagnose, diagnosis_keyword)
-            else:
-                st.error("診断できるほどの十分な長さの本文が取得できませんでした。")
-
-
-# =================================================================
-#                         共通の結果表示エリア
-# =================================================================
-
-current_body = st.session_state.revised_body if st.session_state.revised_body else st.session_state.article_body
-
-if current_body:
-    
-    target_keyword = st.session_state.get('gen_keyword') if not st.session_state.is_diagnosis_mode else st.session_state.get('diagnosis_keyword_input')
-
-    st.markdown("---")
-    st.header("📝 ステップ3: 最終チェックと修正")
-    
-    # 広告枠 2: 中間広告の配置（静的HTML使用）
-    st.markdown("---")
-    st.subheader("💡 記事改善提案の間に広告表示 💡")
-
-    if AD_CODE_MIDDLE_HTML and AD_CODE_MIDDLE_HTML.strip():
-        try:
-            # components.html を使わず、st.markdown で静的HTMLをレンダリング
-            st.markdown(
-                AD_CODE_MIDDLE_HTML,
-                unsafe_allow_html=True
-            )
-        except Exception:
-            st.warning("🚨 中間広告のレンダリング中にエラーが発生しましたが、アプリは継続します。")
-    else:
-        st.info("💡 広告コード（中間）が設定されていません。")
-    st.markdown("---")
-    
-    # 7. メタ情報生成とチェックリスト実行ボタン
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        if st.button("✨ メタ情報を生成/チェックする", key="meta_check_btn"):
-            generate_meta(current_body)
-    with col2:
-        if st.button("🔍 SEOチェックリストで評価する", key="check_seo_btn"):
-            check_seo(current_body, target_keyword)
-
-    # 8. SEOチェックリストの表示
-    if st.session_state.seo_check and st.session_state.seo_check.get("seo_checklist"):
-        st.markdown("#### 📋 AIによるSEO改善提案")
-        check_list = st.session_state.seo_check["seo_checklist"]
-        
-        is_revised_needed = any(item.get('status') == "要改善" for item in check_list)
-
-        if is_revised_needed:
-            st.warning("🔴 要改善の指摘があります。自動修正を試してください。")
-            if st.button("🔧 AIによる自動修正を実行する", key="auto_revise_btn"):
-                revise_article(current_body, st.session_state.seo_check, target_keyword)
-        else:
-            st.success("🎉 SEO上の大きな改善点は見つかりませんでした！")
-
-    # 9. メタ情報の表示
-    if st.session_state.meta_data:
-        st.markdown("#### 📧 メタ情報 (検索結果で表示される部分)")
-        meta = st.session_state.meta_data
-        st.info(f"**SEOタイトル**: {meta.get('meta_title', 'N/A')} (目安: 30-35文字)")
-        st.warning(f"**メタディスクリプション**: {meta.get('meta_description', 'N/A')} (目安: 100-120文字)")
-    
-    # 10. 本文コピペエリア (修正版優先)
-    final_body_to_display = st.session_state.revised_body if st.session_state.revised_body else st.session_state.article_body
-
-    st.markdown("### ✍️ 最終記事本文 (コピペ用)")
-    st.text_area(
-        "📝 ブログに貼り付け可能な本文", 
-        final_body_to_display, 
-        height=500,
-        key="final_body_output"
-    )
-
-    # 11. ダウンロードボタン
-    
-    download_content = f"## SEOレポート\n\n"
-    if st.session_state.meta_data:
-        download_content += f"\n"
-        download_content += f"\n\n"
-    
-    if st.session_state.outline_data:
-        download_content += f"# {st.session_state.outline_data.get('article_title_H1')}\n\n"
-        
-    download_content += final_body_to_display
-    
-    st.download_button(
-        label="📥 Markdownファイルとしてダウンロード",
-        data=download_content.encode('utf-8'),
-        file_name=f"seo_article_final.md",
-        mime="text/markdown"
-    )
-    
-    st.success("🎉 全てのSEOタスクが完了しました！")
+        key="diagnosis_url_
