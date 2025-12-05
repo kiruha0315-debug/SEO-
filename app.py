@@ -24,9 +24,6 @@ AD_CODE_MIDDLE_CONTENT = """
     </div>
 """
 
-# 以前使用していた display_ad_slot 関数は、StreamlitのTypeError回避のため削除しました。
-# components.html を直接、キーワード引数形式で呼び出します。
-
 # --- 1. 初期設定とAPIキーの取得 ---
 
 st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layout="wide")
@@ -34,18 +31,18 @@ st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layo
 st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
-# 広告枠 1: ヘッダー広告の配置
-# 強制型変換と、空/空白のみの文字列でないことを厳密にチェック
+# 広告枠 1: ヘッダー広告の配置 (🚨 起動エラー回避のため、呼び出しを完全にコメントアウト 🚨)
 safe_header_code = str(AD_CODE_HEADER_CONTENT).strip() if AD_CODE_HEADER_CONTENT else ""
-if safe_header_code and not safe_header_code.isspace():
-    components.html(
-        html=safe_header_code, # 必須の'html'引数をキーワードで明示
-        height=100,
-        scrolling=False,
-        key="header_ad"
-    ) 
-else:
-    st.info("💡 広告コード（ヘッダー）が空または不正なため、表示をスキップしました。")
+# if safe_header_code and not safe_header_code.isspace():
+#     components.html(
+#         html=safe_header_code, 
+#         height=100,
+#         scrolling=False,
+#         key="header_ad"
+#     ) 
+# else:
+#     st.info("💡 広告コード（ヘッダー）が空または不正なため、表示をスキップしました。")
+st.info("💡 広告コードの表示処理は、起動エラー回避のため、一時的にスキップされています。")
 
 
 # 🔑 APIキーの取得 (ロジックは変更なし)
@@ -299,23 +296,21 @@ elif mode == '🔍 既存コンテンツ診断（添削）':
     
     st.header("🔍 既存記事のSEO診断・添削")
     
-    # 🚨 SyntaxError: '(' was never closed の修正済みブロック 🚨
     diagnosis_url = st.text_input(
         "🔗 診断したい記事のURLを入力してください",
         key="diagnosis_url_input"
-    ) # 閉じ括弧を確認済み
+    ) 
     
     diagnosis_keyword = st.text_input(
         "🔑 この記事のターゲットキーワードは何ですか？",
         key="diagnosis_keyword_input"
-    ) # 閉じ括弧を確認済み
+    )
 
     existing_article = st.text_area(
         "または、URLから取得できない場合に備え、直接本文を貼り付けられます。",
         height=300,
         key="existing_article_input"
     )
-    # ----------------------------------------------------
     
     if st.button("🔬 AIによるSEO診断を開始する"):
         if not diagnosis_keyword:
@@ -358,17 +353,18 @@ if current_body:
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
-    # 広告枠 2: 中間広告の配置
+    # 広告枠 2: 中間広告の配置 (🚨 起動エラー回避のため、呼び出しを完全にコメントアウト 🚨)
     safe_middle_code = str(AD_CODE_MIDDLE_CONTENT).strip() if AD_CODE_MIDDLE_CONTENT else ""
-    if safe_middle_code and not safe_middle_code.isspace():
-        components.html(
-            html=safe_middle_code, # 必須の'html'引数をキーワードで明示
-            height=80,
-            scrolling=False,
-            key="middle_ad"
-        )
-    else:
-        st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
+    # if safe_middle_code and not safe_middle_code.isspace():
+    #     components.html(
+    #         html=safe_middle_code,
+    #         height=80,
+    #         scrolling=False,
+    #         key="middle_ad"
+    #     )
+    # else:
+    #     st.info("💡 広告コード（中間）が空または不正なため、表示をスキップしました。")
+    st.info("💡 広告コードの表示処理は、起動エラー回避のため、一時的にスキップされています。（中間広告）")
     
     # 7. メタ情報生成とチェックリスト実行ボタン
     col1, col2 = st.columns([1, 1])
