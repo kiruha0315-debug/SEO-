@@ -3,10 +3,14 @@ import google.generativeai as genai
 import os
 import json
 import re
+# --- 追加ライブラリ ---
+import requests
+from bs4 import BeautifulSoup
+# --------------------
 
 # --- 1. 初期設定とAPIキーの取得 ---
 
-st.set_page_config(page_title="SEOコンテンツスタジオ (Complete)", layout="wide")
+st.set_page_config(page_title="SEOコンテンツスタジオ (最終版)", layout="wide")
 
 st.title("💡 SEOコンテンツスタジオ：完全版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
@@ -90,6 +94,45 @@ def reset_session():
     st.session_state.meta_data = None
     st.session_state.seo_check = None
     st.session_state.is_diagnosis_mode = False
+
+# --- Webスクレイピング機能 ---
+
+def scrape_and_extract_text(url):
+    """URLからHTMLを取得し、本文テキストのみを抽出する"""
+    try:
+        # ユーザーエージェントを設定
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        st.info(f"🌐 URL: {url} のコンテンツを取得中です...")
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status() # エラー応答を検出
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # 記事の本文が格納されている可能性が高い要素を抽出
+        article_text = []
+        for tag in soup.find_all(['p', 'h1', 'h2', 'h3', 'li']):
+            text = tag.get_text(strip=True)
+            if text:
+                article_text.append(text)
+
+        full_text = '\n\n'.join(article_text)
+        
+        if len(full_text) < 500:
+            st.warning("⚠️ 取得した本文が非常に短いです。サイト側でブロックされているか、記事形式ではない可能性があります。")
+            
+        st.success(f"✅ コンテンツの取得が完了しました。文字数: {len(full_text)}字")
+        return full_text
+
+    except requests.exceptions.RequestException as e:
+        st.error(f"接続エラーまたはページ取得エラーが発生しました: {e}")
+        return None
+    except Exception as e:
+        st.error(f"コンテンツ解析中に予期せぬエラーが発生しました: {e}")
+        return None
 
 # --- 4. メタ情報生成ロジック ---
 
@@ -179,7 +222,6 @@ if mode == '🚀 記事ゼロイチ生成（新規作成）':
 
     def generate_outline_logic(keyword, intent, num_h2):
         if not api_key_valid: return
-        # ... (前述の骨子生成ロジックをここに挿入) ...
         system_prompt = f"""
         あなたはプロのSEOコンテンツストラテジストであり、人気ブログの編集長です。
         ユーザーが指定したキーワードと検索意図に基づき、SEOで上位表示を目指すための、論理的で網羅性の高い記事の骨子（アウトライン）をJSON形式で生成してください。
@@ -237,40 +279,66 @@ if mode == '🚀 記事ゼロイチ生成（新規作成）':
         if st.button("📝 ステップ2: この骨子で記事本文を生成する", key="gen_body_btn"):
             generate_body_logic()
         
-        # ... (H2/H3の表示 - 変更なし) ...
-        # (簡略化のため、本文生成後の表示セクションに移ります)
+        # ... (H2/H3の表示 - 簡略化) ...
 
 
 # =================================================================
-#                         診断モード
+#                         診断モード（URL対応）
 # =================================================================
 
 elif mode == '🔍 既存コンテンツ診断（添削）':
-    st.session_state.is_diagnosis_mode = True
     reset_session()
+    st.session_state.is_diagnosis_mode = True
     
     st.header("🔍 既存記事のSEO診断・添削")
+    
+    diagnosis_url = st.text_input(
+        "🔗 診断したい記事のURLを入力してください",
+        key="diagnosis_url_input"
+    )
     
     diagnosis_keyword = st.text_input(
         "🔑 この記事のターゲットキーワードは何ですか？",
         key="diagnosis_keyword_input"
     )
+
     existing_article = st.text_area(
-        "診断したい記事の本文を貼り付けてください",
-        height=500,
+        "または、URLから取得できない場合に備え、直接本文を貼り付けられます。",
+        height=300,
         key="existing_article_input"
     )
     
     if st.button("🔬 AIによるSEO診断を開始する"):
-        if not existing_article or not diagnosis_keyword:
-            st.error("診断には記事本文とターゲットキーワードが必要です。")
+        if not diagnosis_keyword:
+            st.error("ターゲットキーワードが必要です。")
         else:
-            # 診断モードでは、生成された本文として貼り付けられた本文を使う
-            st.session_state.article_body = existing_article
-            st.session_state.is_diagnosis_mode = True
+            article_to_diagnose = ""
             
-            # 既存の check_seo 関数を呼び出し、診断を実行
-            check_seo(existing_article, diagnosis_keyword)
+            if diagnosis_url:
+                # URLが入力されたら、まずスクレイピングを試みる
+                scraped_text = scrape_and_extract_text(diagnosis_url)
+                if scraped_text:
+                    article_to_diagnose = scraped_text
+                    st.session_state.existing_article_input = scraped_text # 取得結果をテキストエリアに反映
+                else:
+                    st.warning("URLからのコンテンツ取得に失敗したか、内容が不十分でした。貼り付けた本文を使用します。")
+                    article_to_diagnose = existing_article
+            elif existing_article:
+                # URLがなく、貼り付けた本文がある場合はそれを使用
+                article_to_diagnose = existing_article
+            else:
+                st.error("診断にはURLまたは記事本文の貼り付けが必要です。")
+                st.stop()
+            
+            if article_to_diagnose and len(article_to_diagnose) > 50:
+                # 診断モードの本文としてセッションステートに保存
+                st.session_state.article_body = article_to_diagnose
+                st.session_state.is_diagnosis_mode = True
+                
+                # 既存の check_seo 関数を呼び出し、診断を実行
+                check_seo(article_to_diagnose, diagnosis_keyword)
+            else:
+                st.error("診断できるほどの十分な長さの本文が取得できませんでした。")
 
 
 # =================================================================
@@ -281,8 +349,9 @@ current_body = st.session_state.revised_body if st.session_state.revised_body el
 
 if current_body:
     
-    target_keyword = st.session_state.get('input_keyword', st.session_state.get('diagnosis_keyword_input', ''))
-    
+    # 診断モードと生成モードでターゲットキーワードの取得元を変える
+    target_keyword = st.session_state.get('gen_keyword') if not st.session_state.is_diagnosis_mode else st.session_state.get('diagnosis_keyword_input')
+
     st.markdown("---")
     st.header("📝 ステップ3: 最終チェックと修正")
     
@@ -335,7 +404,10 @@ if current_body:
         download_content += f"\n"
         download_content += f"\n\n"
     
-    download_content += f"# {st.session_state.outline_data.get('article_title_H1') if st.session_state.outline_data else '記事タイトル'}\n\n"
+    # H1タイトルは生成モードの場合のみ含める
+    if st.session_state.outline_data:
+        download_content += f"# {st.session_state.outline_data.get('article_title_H1')}\n\n"
+        
     download_content += final_body_to_display
     
     st.download_button(
