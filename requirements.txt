@@ -1,3 +1,5 @@
 # requirements.txt
 streamlit
-google-generativeai  # <-- 'generativeai' を含むフルネームに変更
+google-generativeai
+requests             # URLからHTMLを取得するため
+beautifulsoup4       # HTMLから本文テキストを抽出するため
