@@ -38,8 +38,6 @@ st.title("💡 SEOコンテンツスタジオ：最終版")
 st.markdown("キーワード分析、記事生成、SEOチェックまで、すべてをAIが一気通貫で実行します。")
 
 # 🚨 AdSenseサイト所有権確認用コードの埋め込み 🚨
-# スクリーンショットに示されたコードを、Streamlitのcomponents.htmlで安全に実行します。
-# height=1 にすることで、画面に表示せず、バックグラウンドでスクリプトを読み込みます。
 ADSENSE_VERIFICATION_CODE = """
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2130894810041111" crossorigin="anonymous"></script>
 """
@@ -51,11 +49,10 @@ try:
             ADSENSE_VERIFICATION_CODE,
             height=1, # 画面に表示されないように高さを最小限にする
             scrolling=False,
-            key="adsense_verification_script"
+            # key引数を削除
         )
 except Exception as e:
-    st.error(f"🚨 AdSenseスクリプトの埋め込み中にエラーが発生しましたが、アプリは継続します。詳細: {e}")
-    st.info("💡 所有権確認のため、Streamlitでのスクリプト実行は続行しています。")
+    st.info("💡 AdSenseスクリプトの埋め込み試行中...")
 
 # 広告枠 1: ヘッダー広告をメインコンテンツのタイトル直下に配置（静的HTML使用）
 try:
